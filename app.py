@@ -1,13 +1,9 @@
-# test.py
-
 import os
 import tensorflow as tf
 import numpy as np
 import cv2
-
-####################
 import urllib.request
-from flask import Flask, flash, request, redirect, render_template
+from flask import Flask, flash, request, redirect, render_template, jsonify
 from werkzeug import secure_filename
 
 UPLOAD_FOLDER = '/uploads'
@@ -19,6 +15,7 @@ app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
 ##########################
 
 
@@ -26,7 +23,9 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 RETRAINED_LABELS_TXT_FILE_LOC = os.getcwd() + "/" + "retrained_labels.txt"
 RETRAINED_GRAPH_PB_FILE_LOC = os.getcwd() + "/" + "retrained_graph.pb"
 
+TRAINING_IMAGES_DIR = os.getcwd() + '/training_images'
 TEST_IMAGES_DIR = os.getcwd() + "/test_images"
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 SCALAR_RED = (0.0, 0.0, 255.0)
 SCALAR_BLUE = (255.0, 0.0, 0.0)
@@ -120,8 +119,38 @@ def predict(file):
     
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload():
-
+    print("find")
+    #d = request.files['file']
+    #d.save(secure_filename(d.filename))
     f = request.files['file'].read()
+    
     result = predict(f)
+    response = result.split(" ")
+    return jsonify(prediction=response[0],percentage=response[1])
+
     #f.save(secure_filename(os.path.join(app.root_path, "uploads", f.filename)))
-    return result
+    #return result
+
+@app.route('/uploads', methods=['GET'])
+def uploads():
+    print("find")
+    return "result"
+
+@app.route("/wrongPrediction", methods=["POST"])
+def wrongPrediction():
+
+    target = TRAINING_IMAGES_DIR
+    print(target)
+    if not os.path.isdir(target):
+        os.mkdir(target)
+
+    file = request.files['file']
+    filename = file.filename
+    
+    type = request.form['type']
+    destination = "/".join([target,type, filename])
+    print(type)
+    print("Accept incoming file:", filename)
+    print(destination)
+    file.save(destination) 
+    return "success"
