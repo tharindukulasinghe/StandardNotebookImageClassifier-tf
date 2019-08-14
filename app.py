@@ -133,8 +133,8 @@ def upload():
 
 @app.route('/uploads', methods=['GET'])
 def uploads():
-    print("find")
-    return "result"
+    print("working")
+    return "success"
 
 @app.route("/wrongPrediction", methods=["POST"])
 def wrongPrediction():
